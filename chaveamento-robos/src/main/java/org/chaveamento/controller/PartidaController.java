@@ -1,5 +1,6 @@
 package org.chaveamento.controller;
 
+import org.chaveamento.dto.partida.PartidaResponse;
 import org.chaveamento.dto.partida.ResultadoPartidaRequest;
 import org.chaveamento.model.partida.Partida;
 import org.chaveamento.service.PartidaService;
@@ -17,7 +18,7 @@ public class PartidaController {
     }
 
     @PostMapping("/{partidaId}/resultado")
-    public ResponseEntity<Partida> registrarResultado(
+    public ResponseEntity<PartidaResponse> registrarResultado(
             @PathVariable Long partidaId,
             @RequestBody ResultadoPartidaRequest request) {
 

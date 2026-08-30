@@ -1,5 +1,6 @@
 package org.chaveamento.service;
 
+import org.chaveamento.dto.time.TimeResponse;
 import org.chaveamento.model.participacaotorneio.ParticipacaoTorneio;
 import org.chaveamento.model.time.Time;
 import org.chaveamento.model.torneio.Torneio;
@@ -7,6 +8,8 @@ import org.chaveamento.repository.ParticipacaoTorneioRepository;
 import org.chaveamento.repository.TimeRepository;
 import org.chaveamento.repository.TorneioRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class ParticipacaoTorneioService {
@@ -40,6 +43,27 @@ public class ParticipacaoTorneioService {
         participacao.setTime(time);
 
         return participacaoRepository.save(participacao);
+    }
+
+    public List<TimeResponse> listarTimes(Long torneioId) {
+
+        torneioRepository.findById(torneioId)
+                .orElseThrow(() ->
+                        new RuntimeException("Torneio não encontrado"));
+
+        return participacaoRepository
+                .findByTorneioId(torneioId)
+                .stream()
+                .map(participacao -> {
+                    Time time = participacao.getTime();
+
+                    return new TimeResponse(
+                            time.getId(),
+                            time.getNome(),
+                            time.getTipo()
+                    );
+                })
+                .toList();
     }
 }
 
