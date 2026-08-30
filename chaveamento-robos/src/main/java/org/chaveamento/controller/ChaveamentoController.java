@@ -1,12 +1,10 @@
 package org.chaveamento.controller;
 
+import org.chaveamento.dto.partida.PartidaResponse;
 import org.chaveamento.model.partida.Partida;
 import org.chaveamento.service.ChaveamentoService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -26,6 +24,14 @@ public class ChaveamentoController {
     ) {
         return ResponseEntity.ok(
                 chaveamentoService.gerarChaveamento(torneioId)
+        );
+    }
+
+    public ResponseEntity<List<org.chaveamento.dto.partida.PartidaResponse>> listar(
+            @PathVariable Long torneioId) {
+
+        return ResponseEntity.ok(
+                chaveamentoService.listarChaveamento(torneioId)
         );
     }
 }

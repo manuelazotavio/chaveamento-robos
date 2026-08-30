@@ -26,6 +26,7 @@ public class ParticipacaoTorneioService {
         Torneio torneio = torneioRepository.findById(torneioId)
                 .orElseThrow(() -> new RuntimeException("Torneio não encontrado"));
 
+
         Time time = timeRepository.findById(timeId)
                 .orElseThrow(() -> new RuntimeException("Time não encontrado"));
         if(participacaoRepository

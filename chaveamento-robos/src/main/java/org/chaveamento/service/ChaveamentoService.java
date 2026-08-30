@@ -1,5 +1,6 @@
 package org.chaveamento.service;
 
+import org.chaveamento.dto.partida.PartidaResponse;
 import org.chaveamento.model.participacaotorneio.ParticipacaoTorneio;
 import org.chaveamento.model.partida.FasePartida;
 import org.chaveamento.model.partida.Partida;
@@ -155,6 +156,39 @@ public class ChaveamentoService {
             case SEMIFINAL -> FasePartida.FINAL;
             case FINAL -> FasePartida.FINAL;
         };
+    }
+
+    public List<PartidaResponse> listarChaveamento(Long torneioId) {
+
+        torneioRepository.findById(torneioId)
+                .orElseThrow(() ->
+                        new RuntimeException("Torneio não encontrado"));
+
+        List<Partida> partidas =
+                partidaRepository.findByTorneioId(torneioId);
+
+        return partidas.stream()
+                .map(partida -> new PartidaResponse(
+                        partida.getId(),
+                        partida.getFase(),
+                        partida.getStatus(),
+                        partida.getTorneio().getId(),
+                        partida.getTimeA() != null
+                                ? partida.getTimeA().getId()
+                                : null,
+                        partida.getTimeB() != null
+                                ? partida.getTimeB().getId()
+                                : null,
+                        partida.getPlacarTimeA(),
+                        partida.getPlacarTimeB(),
+                        partida.getVencedor() != null
+                                ? partida.getVencedor().getId()
+                                : null,
+                        partida.getProximaPartida() != null
+                                ? partida.getProximaPartida().getId()
+                                : null
+                ))
+                .toList();
     }
 
 }
