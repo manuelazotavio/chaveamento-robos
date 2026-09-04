@@ -7,6 +7,7 @@ import org.chaveamento.repository.TimeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,9 +37,9 @@ public class TimeService {
 
     }
 
-    public Time uploadImagem(Long id, MultipartFile imagem){
+    public Time uploadImagem(Long id, MultipartFile imagem) throws IOException {
 
-        Time time = timeService.getById(id);
+        Time time = getById(id);
 
         String nomeArquivo = id + ".jpg";
 
