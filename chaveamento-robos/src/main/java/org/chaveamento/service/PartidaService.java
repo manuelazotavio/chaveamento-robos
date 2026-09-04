@@ -45,8 +45,10 @@ public class PartidaService {
                     "A partida não pode terminar empatada");
         }
 
+
         partida.setPlacarTimeA(request.placarTimeA());
         partida.setPlacarTimeB(request.placarTimeB());
+
 
         Time vencedor;
 
@@ -59,7 +61,27 @@ public class PartidaService {
         partida.setVencedor(vencedor);
         partida.setStatus(StatusPartida.FINALIZADA);
 
+
         Partida salva = partidaRepository.save(partida);
+
+
+        Partida proxima = partida.getProximaPartida();
+
+        if (proxima != null) {
+
+            if (partida.getPosicaoProximaPartida()
+                    == PosicaoProximaPartida.TIME_A) {
+
+                proxima.setTimeA(vencedor);
+
+            } else if (partida.getPosicaoProximaPartida()
+                    == PosicaoProximaPartida.TIME_B) {
+
+                proxima.setTimeB(vencedor);
+            }
+
+            partidaRepository.save(proxima);
+        }
 
         return new PartidaResponse(
                 salva.getId(),

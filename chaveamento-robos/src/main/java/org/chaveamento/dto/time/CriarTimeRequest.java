@@ -9,6 +9,8 @@ public record CriarTimeRequest(
         String nome,
 
         @NotNull(message = "O tipo do time é obrigatório")
-        EnumTime tipo
+        EnumTime tipo,
+
+        String imagem
 ) {
 }

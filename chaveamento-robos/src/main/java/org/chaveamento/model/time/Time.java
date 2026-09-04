@@ -20,9 +20,11 @@ public class Time {
 
     private String nome;
     private EnumTime tipo;
+    private String imagem;
 
-    public Time(String nome, EnumTime tipo) {
+    public Time(String nome, EnumTime tipo, String imagem) {
         this.nome = nome;
         this.tipo = tipo;
+        this.imagem = imagem;
     }
 }
