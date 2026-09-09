@@ -6,14 +6,20 @@ import org.chaveamento.model.time.Time;
 public record TimeResponse(
         Long id,
         String nome,
-        EnumTime tipo
+        EnumTime tipo,
+        String imagem,
+        String audioGol,
+        String audioVitoria
 ) {
 
     public TimeResponse(Time time) {
         this(
                 time.getId(),
                 time.getNome(),
-                time.getTipo()
+                time.getTipo(),
+                time.getImagem(),
+                time.getAudioGol(),
+                time.getAudioVitoria()
         );
     }
 }

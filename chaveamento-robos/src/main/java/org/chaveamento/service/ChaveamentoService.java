@@ -53,6 +53,20 @@ public class ChaveamentoService {
                 participacaoRepository.findByTorneioId(torneioId);
 
         validarQuantidadeTimes(participacoes.size());
+
+        // fases já jogadas não podem ser perdidas num sorteio novo
+        List<Partida> chaveamentoAnterior = partidaRepository.findByTorneioId(torneioId);
+        boolean existeResultadoRegistrado = chaveamentoAnterior.stream()
+                .anyMatch(partida -> partida.getStatus() == StatusPartida.FINALIZADA);
+
+        if (existeResultadoRegistrado) {
+            throw new RuntimeException(
+                    "Não é possível sortear novamente: já existem resultados registrados neste chaveamento."
+            );
+        }
+
+        removerChaveamentoAnterior(torneioId);
+
         List<Time> times = participacoes.stream()
                 .map(ParticipacaoTorneio::getTime)
                 .toList();
@@ -67,6 +81,27 @@ public class ChaveamentoService {
         criarProximasFases(torneio, partidasPrimeiraFase);
 
         return partidaRepository.findByTorneioId(torneioId);
+    }
+
+    public void resetarChaveamento(Long torneioId) {
+
+        torneioRepository.findById(torneioId)
+                .orElseThrow(() ->
+                        new RuntimeException("Torneio não encontrado"));
+
+        removerChaveamentoAnterior(torneioId);
+    }
+
+    private void removerChaveamentoAnterior(Long torneioId) {
+
+        List<Partida> existentes = partidaRepository.findByTorneioId(torneioId);
+
+        // zera a referência de próxima partida antes de apagar, pra não violar
+        // a FK auto-referenciada (partidas apontando pra outras partidas do mesmo torneio)
+        existentes.forEach(partida -> partida.setProximaPartida(null));
+        partidaRepository.saveAll(existentes);
+
+        partidaRepository.deleteAll(existentes);
     }
 
     private List<Partida> criarPrimeiraFase(

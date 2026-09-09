@@ -54,15 +54,7 @@ public class ParticipacaoTorneioService {
         return participacaoRepository
                 .findByTorneioId(torneioId)
                 .stream()
-                .map(participacao -> {
-                    Time time = participacao.getTime();
-
-                    return new TimeResponse(
-                            time.getId(),
-                            time.getNome(),
-                            time.getTipo()
-                    );
-                })
+                .map(participacao -> new TimeResponse(participacao.getTime()))
                 .toList();
     }
 }

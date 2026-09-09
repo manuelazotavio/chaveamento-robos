@@ -1,6 +1,7 @@
 package org.chaveamento.controller;
 
 import org.chaveamento.dto.torneio.CriarTorneioRequest;
+import org.chaveamento.dto.torneio.TorneioResponse;
 import org.chaveamento.service.TorneioService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

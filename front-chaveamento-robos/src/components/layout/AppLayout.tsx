@@ -6,7 +6,8 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from "@/co
 import { AppSidebar } from "./AppSidebar";
 
 const pageNames: Record<string, string> = {
-  "": "Times",
+  "": "Chaveamento",
+  times: "Times",
   torneios: "Torneios",
 };
 
@@ -42,9 +43,7 @@ export function AppLayout() {
               </Breadcrumb>
             </div>
 
-            <span className="hidden shrink-0 text-xs font-medium text-muted-foreground sm:block">
-              Instituto Federal de São Paulo
-            </span>
+           
           </div>
         </header>
 

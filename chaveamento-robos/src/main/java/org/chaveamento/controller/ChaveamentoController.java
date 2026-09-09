@@ -27,11 +27,21 @@ public class ChaveamentoController {
         );
     }
 
-    public ResponseEntity<List<org.chaveamento.dto.partida.PartidaResponse>> listar(
+    @GetMapping("/{torneioId}/chaveamento")
+    public ResponseEntity<List<PartidaResponse>> listar(
             @PathVariable Long torneioId) {
 
         return ResponseEntity.ok(
                 chaveamentoService.listarChaveamento(torneioId)
         );
+    }
+
+    @DeleteMapping("/{torneioId}/chaveamento")
+    public ResponseEntity<Void> resetar(
+            @PathVariable Long torneioId) {
+
+        chaveamentoService.resetarChaveamento(torneioId);
+
+        return ResponseEntity.noContent().build();
     }
 }

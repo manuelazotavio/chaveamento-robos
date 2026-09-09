@@ -29,11 +29,7 @@ public class TimeService {
 
         Time salvo = timeRepository.save(time);
 
-        return new TimeResponse(
-                salvo.getId(),
-                salvo.getNome(),
-                salvo.getTipo()
-        );
+        return new TimeResponse(salvo);
 
     }
 
@@ -44,7 +40,7 @@ public class TimeService {
         String nomeArquivo = id + ".jpg";
 
         Path pasta = Paths.get("uploads/time");
-        Files.createDirectory(pasta);
+        Files.createDirectories(pasta);
 
         Path caminho = pasta.resolve(nomeArquivo);
 
@@ -54,10 +50,62 @@ public class TimeService {
                 StandardCopyOption.REPLACE_EXISTING
         );
 
-        time.setImagem("uploads/time" + nomeArquivo);
+        // caminho servido via o resource handler /uploads/** (ver CorsConfig)
+        time.setImagem("/uploads/time/" + nomeArquivo);
 
         return timeRepository.save(time);
 
+    }
+
+    public Time uploadAudioGol(Long id, MultipartFile audio) throws IOException {
+
+        Time time = getById(id);
+
+        String caminhoSalvo = salvarAudio("uploads/audio/gol", id, audio);
+
+        time.setAudioGol(caminhoSalvo);
+
+        return timeRepository.save(time);
+    }
+
+    public Time uploadAudioVitoria(Long id, MultipartFile audio) throws IOException {
+
+        Time time = getById(id);
+
+        String caminhoSalvo = salvarAudio("uploads/audio/vitoria", id, audio);
+
+        time.setAudioVitoria(caminhoSalvo);
+
+        return timeRepository.save(time);
+    }
+
+    private String salvarAudio(String pastaBase, Long id, MultipartFile audio) throws IOException {
+
+        String extensao = extensaoDoArquivo(audio.getOriginalFilename());
+        String nomeArquivo = id + extensao;
+
+        Path pasta = Paths.get(pastaBase);
+        Files.createDirectories(pasta);
+
+        Path caminho = pasta.resolve(nomeArquivo);
+
+        Files.copy(
+                audio.getInputStream(),
+                caminho,
+                StandardCopyOption.REPLACE_EXISTING
+        );
+
+        // caminho servido via o resource handler /uploads/** (ver CorsConfig)
+        return "/" + pastaBase + "/" + nomeArquivo;
+    }
+
+    private String extensaoDoArquivo(String nomeOriginal) {
+
+        if (nomeOriginal == null || !nomeOriginal.contains(".")) {
+            return ".mp3";
+        }
+
+        return nomeOriginal.substring(nomeOriginal.lastIndexOf("."));
     }
 
 

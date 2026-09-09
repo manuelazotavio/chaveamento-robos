@@ -1,9 +1,15 @@
 import { api } from "./api";
 import type { CriarTorneioRequest, ParticipacaoTorneio, Torneio } from "@/types/torneio";
+import type { Time } from "@/types/time";
 
 export const torneioService = {
   async listar(): Promise<Torneio[]> {
     const { data } = await api.get<Torneio[]>("/torneios");
+    return data;
+  },
+
+  async listarTimes(torneioId: number): Promise<Time[]> {
+    const { data } = await api.get<Time[]>(`/torneios/${torneioId}/times`);
     return data;
   },
 

@@ -21,6 +21,8 @@ public class Time {
     private String nome;
     private EnumTime tipo;
     private String imagem;
+    private String audioGol;
+    private String audioVitoria;
 
     public Time(String nome, EnumTime tipo, String imagem) {
         this.nome = nome;

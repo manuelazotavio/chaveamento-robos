@@ -1,10 +1,11 @@
-import { Trophy, Users, X } from "lucide-react";
+import { Swords, Trophy, Users, X } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const menuItems = [
-  { title: "Times", url: "/", icon: Users, end: true },
+  { title: "Chaveamento", url: "/", icon: Swords, end: true },
+  { title: "Times", url: "/times", icon: Users, end: false },
   { title: "Torneios", url: "/torneios", icon: Trophy, end: false },
 ];
 
