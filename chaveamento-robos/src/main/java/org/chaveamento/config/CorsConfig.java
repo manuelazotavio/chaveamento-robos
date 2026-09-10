@@ -26,6 +26,17 @@ public class CorsConfig implements WebMvcConfigurer {
                 .allowedOrigins("http://localhost:5173")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*");
+
+        // login/autenticacao tambem nao segue o prefixo /api
+        registry.addMapping("/auth/**")
+                .allowedOrigins("http://localhost:5173")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .allowedHeaders("*");
+
+        registry.addMapping("/usuarios/**")
+                .allowedOrigins("http://localhost:5173")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .allowedHeaders("*");
     }
 
     // expõe os arquivos salvos em uploads/ (imagens dos times) via HTTP

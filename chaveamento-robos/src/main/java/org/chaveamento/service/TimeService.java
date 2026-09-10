@@ -1,5 +1,6 @@
 package org.chaveamento.service;
 
+import org.chaveamento.model.time.StatusTime;
 import org.chaveamento.model.time.Time;
 import org.chaveamento.dto.time.CriarTimeRequest;
 import org.chaveamento.dto.time.TimeResponse;
@@ -119,5 +120,17 @@ public class TimeService {
     public Time getById(Long id) {
         return timeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Time não encontrado"));
+    }
+
+    public TimeResponse aprovar(Long id) {
+        Time time = getById(id);
+        time.setStatus(StatusTime.APROVADO);
+        return new TimeResponse(timeRepository.save(time));
+    }
+
+    public TimeResponse reprovar(Long id) {
+        Time time = getById(id);
+        time.setStatus(StatusTime.REJEITADO);
+        return new TimeResponse(timeRepository.save(time));
     }
 }

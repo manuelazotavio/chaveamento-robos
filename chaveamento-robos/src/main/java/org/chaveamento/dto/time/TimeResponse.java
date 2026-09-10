@@ -1,6 +1,7 @@
 package org.chaveamento.dto.time;
 
 import org.chaveamento.model.time.EnumTime;
+import org.chaveamento.model.time.StatusTime;
 import org.chaveamento.model.time.Time;
 
 public record TimeResponse(
@@ -9,7 +10,8 @@ public record TimeResponse(
         EnumTime tipo,
         String imagem,
         String audioGol,
-        String audioVitoria
+        String audioVitoria,
+        StatusTime status
 ) {
 
     public TimeResponse(Time time) {
@@ -19,7 +21,8 @@ public record TimeResponse(
                 time.getTipo(),
                 time.getImagem(),
                 time.getAudioGol(),
-                time.getAudioVitoria()
+                time.getAudioVitoria(),
+                time.getStatus()
         );
     }
 }

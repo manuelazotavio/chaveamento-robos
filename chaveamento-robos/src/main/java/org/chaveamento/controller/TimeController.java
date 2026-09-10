@@ -36,6 +36,16 @@ public class TimeController {
         return ResponseEntity.ok(timeService.listar());
     }
 
+    @PatchMapping("/{id}/aprovar")
+    public ResponseEntity<TimeResponse> aprovar(@PathVariable Long id) {
+        return ResponseEntity.ok(timeService.aprovar(id));
+    }
+
+    @PatchMapping("/{id}/reprovar")
+    public ResponseEntity<TimeResponse> reprovar(@PathVariable Long id) {
+        return ResponseEntity.ok(timeService.reprovar(id));
+    }
+
     @PostMapping("/time/{id}/imagem")
     public ResponseEntity<?> upload(@PathVariable Long id, @RequestParam("imagem") MultipartFile imagem) throws IOException {
 

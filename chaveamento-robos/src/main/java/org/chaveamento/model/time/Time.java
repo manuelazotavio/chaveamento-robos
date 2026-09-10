@@ -24,9 +24,13 @@ public class Time {
     private String audioGol;
     private String audioVitoria;
 
+    @Enumerated(EnumType.STRING)
+    private StatusTime status;
+
     public Time(String nome, EnumTime tipo, String imagem) {
         this.nome = nome;
         this.tipo = tipo;
         this.imagem = imagem;
+        this.status = StatusTime.PENDENTE;
     }
 }
