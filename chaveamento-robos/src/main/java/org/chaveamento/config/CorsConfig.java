@@ -1,5 +1,6 @@
 package org.chaveamento.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -8,34 +9,40 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
 
-    // libera o front rodando no vite (porta padrao 5173) pra chamar a api em dev
+    // em dev aponta pro vite (porta padrao 5173); em producao vem de app.cors.origem-frontend (env FRONTEND_URL)
+    @Value("${app.cors.origem-frontend}")
+    private String origemFrontend;
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
+        String[] origens = { "http://localhost:5173", origemFrontend };
+        String[] metodos = { "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS" };
+
         registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:5173")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .allowedOrigins(origens)
+                .allowedMethods(metodos)
                 .allowedHeaders("*");
 
         // torneios/participacao/partidas não seguem o prefixo /api, então precisam do próprio mapping
         registry.addMapping("/torneios/**")
-                .allowedOrigins("http://localhost:5173")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .allowedOrigins(origens)
+                .allowedMethods(metodos)
                 .allowedHeaders("*");
 
         registry.addMapping("/partidas/**")
-                .allowedOrigins("http://localhost:5173")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .allowedOrigins(origens)
+                .allowedMethods(metodos)
                 .allowedHeaders("*");
 
         // login/autenticacao tambem nao segue o prefixo /api
         registry.addMapping("/auth/**")
-                .allowedOrigins("http://localhost:5173")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .allowedOrigins(origens)
+                .allowedMethods(metodos)
                 .allowedHeaders("*");
 
         registry.addMapping("/usuarios/**")
-                .allowedOrigins("http://localhost:5173")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .allowedOrigins(origens)
+                .allowedMethods(metodos)
                 .allowedHeaders("*");
     }
 
