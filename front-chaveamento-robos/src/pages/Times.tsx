@@ -1,19 +1,19 @@
-import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ImagePlus, Music, Plus, Users, X } from "lucide-react";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Check, Eye, Plus, Trophy, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { timeService } from "@/services/timeService";
 import { torneioService } from "@/services/torneioService";
 import { API_BASE_URL } from "@/services/api";
-import type { EnumTime } from "@/types/time";
+import { useAuth } from "@/lib/auth";
+import type { EnumTime, StatusTime, Time } from "@/types/time";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ErrorState";
-import { ImageCropperDialog } from "@/components/ImageCropperDialog";
-import { AudioCropperDialog } from "@/components/AudioCropperDialog";
+import { TimeCadastroForm } from "@/components/TimeCadastroForm";
+import { TimeAudioRevisao } from "@/components/TimeAudioRevisao";
 import {
   Table,
   TableBody,
@@ -26,7 +26,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -38,22 +37,36 @@ const tipoLabel: Record<EnumTime, string> = {
   ROBOSOCCER: "RoboSoccer",
 };
 
+const statusLabel: Record<StatusTime, string> = {
+  PENDENTE: "Pendente",
+  APROVADO: "Aprovado",
+  REJEITADO: "Rejeitado",
+};
+
+const statusVariant: Record<StatusTime, "warning" | "default" | "destructive"> = {
+  PENDENTE: "warning",
+  APROVADO: "default",
+  REJEITADO: "destructive",
+};
+
 export default function Times() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
+  const [processandoId, setProcessandoId] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
-  const [nome, setNome] = useState("");
-  const [tipo, setTipo] = useState<EnumTime | "">("");
-  const [arquivoParaRecorte, setArquivoParaRecorte] = useState<File | null>(null);
-  const [imagemRecortada, setImagemRecortada] = useState<Blob | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
-  const [salvando, setSalvando] = useState(false);
-  const inputImagemRef = useRef<HTMLInputElement>(null);
-  const [audioGol, setAudioGol] = useState<File | null>(null);
-  const [audioVitoria, setAudioVitoria] = useState<File | null>(null);
-  const [pendenciaAudioGol, setPendenciaAudioGol] = useState<File | null>(null);
-  const [pendenciaAudioVitoria, setPendenciaAudioVitoria] = useState<File | null>(null);
+  const [timeDetalheId, setTimeDetalheId] = useState<number | null>(null);
   const [filtroTorneioId, setFiltroTorneioId] = useState<number | "todos">("todos");
+
+  const {
+    data: timeDetalhe,
+    isLoading: carregandoDetalhe,
+    isError: erroDetalhe,
+  } = useQuery({
+    queryKey: ["time", timeDetalheId],
+    queryFn: () => timeService.detalhar(timeDetalheId as number),
+    enabled: timeDetalheId !== null,
+  });
 
   const { data: times, isLoading, isError, refetch } = useQuery({
     queryKey: ["times"],
@@ -81,149 +94,98 @@ export default function Times() {
   const erroExibidos = filtroTorneioId === "todos" ? isError : erroFiltro;
   const refetchExibidos = filtroTorneioId === "todos" ? refetch : refetchFiltro;
 
-  useEffect(() => {
-    if (!imagemRecortada) {
-      setPreviewUrl(null);
-      return;
-    }
-    const url = URL.createObjectURL(imagemRecortada);
-    setPreviewUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [imagemRecortada]);
-
-  function fecharDialog() {
-    setOpen(false);
-    setNome("");
-    setTipo("");
-    setImagemRecortada(null);
-    setArquivoParaRecorte(null);
-    setAudioGol(null);
-    setAudioVitoria(null);
-    setPendenciaAudioGol(null);
-    setPendenciaAudioVitoria(null);
-    setErro(null);
-    if (inputImagemRef.current) inputImagemRef.current.value = "";
-  }
-
-  function removerImagem() {
-    setImagemRecortada(null);
-    if (inputImagemRef.current) inputImagemRef.current.value = "";
-  }
-
-  function handleSelecionarAudioGol(e: ChangeEvent<HTMLInputElement>) {
-    const arquivo = e.target.files?.[0] ?? null;
-    e.target.value = "";
-    if (arquivo) setPendenciaAudioGol(arquivo);
-  }
-
-  function handleSelecionarAudioVitoria(e: ChangeEvent<HTMLInputElement>) {
-    const arquivo = e.target.files?.[0] ?? null;
-    e.target.value = "";
-    if (arquivo) setPendenciaAudioVitoria(arquivo);
-  }
-
-  // referências estáveis: como entram nas deps do efeito de decodificação do
-  // AudioCropperDialog, recriar essas funções a cada digitação no formulário
-  // fazia o cropper reiniciar a decodificação do áudio toda hora
-  const cancelarCorteAudioGol = useCallback(() => setPendenciaAudioGol(null), []);
-  const confirmarCorteAudioGol = useCallback((blob: Blob) => {
-    setAudioGol(new File([blob], "gol.wav", { type: blob.type || "audio/wav" }));
-    setPendenciaAudioGol(null);
-  }, []);
-  const cancelarCorteAudioVitoria = useCallback(() => setPendenciaAudioVitoria(null), []);
-  const confirmarCorteAudioVitoria = useCallback((blob: Blob) => {
-    setAudioVitoria(new File([blob], "vitoria.wav", { type: blob.type || "audio/wav" }));
-    setPendenciaAudioVitoria(null);
-  }, []);
-
-  // api não tem paginação nem PUT/DELETE ainda, então por enquanto é só listar + cadastrar
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (!nome.trim() || !tipo) {
-      setErro("Preencha o nome e a categoria do time.");
-      return;
-    }
-
-    const nomeDuplicado = times?.some(
-      (t) => t.tipo === tipo && t.nome.trim().toLowerCase() === nome.trim().toLowerCase()
-    );
-    if (nomeDuplicado) {
-      setErro("Já existe um time com esse nome nessa categoria.");
-      return;
-    }
-
-    setErro(null);
-    setSalvando(true);
-
-    let time;
-    try {
-      time = await timeService.criar({ nome: nome.trim(), tipo });
-    } catch {
-      toast.error("Não foi possível cadastrar o time.");
-      setSalvando(false);
-      return;
-    }
-
+  function invalidarTimes() {
     queryClient.invalidateQueries({ queryKey: ["times"] });
+    queryClient.invalidateQueries({ queryKey: ["time"] });
+    if (filtroTorneioId !== "todos") {
+      queryClient.invalidateQueries({ queryKey: ["torneio-times", filtroTorneioId] });
+    }
+  }
 
-    // ao cadastrar o time já inscreve automaticamente no torneio da mesma categoria
-    // (como só existe um torneio por categoria, escolher a categoria já basta)
+  // o time só é vinculado a um torneio automaticamente no cadastro, se já existir
+  // um torneio aberto daquela categoria naquele momento — se o torneio for criado
+  // depois, o time fica sem torneio até alguém inscrever manualmente. Por isso,
+  // ao aprovar, tentamos de novo (backend recusa se já estiver inscrito, ignoramos)
+  async function tentarInscreverNoTorneio(time: Time, opts?: { avisarSeJaInscrito?: boolean }) {
     const torneioDaCategoria =
-      torneios?.find((t) => t.tipo === tipo && t.status === "INSCRICOES") ??
-      torneios?.find((t) => t.tipo === tipo);
+      torneios?.find((t) => t.tipo === time.tipo && t.status === "INSCRICOES") ??
+      torneios?.find((t) => t.tipo === time.tipo);
 
-    let inscrito = false;
-    if (torneioDaCategoria) {
-      try {
-        await torneioService.inscreverTime(torneioDaCategoria.id, time.id);
-        queryClient.invalidateQueries({ queryKey: ["torneio-times", torneioDaCategoria.id] });
-        inscrito = true;
-      } catch {
-        // segue sem travar o cadastro — o botão "Inscrever" na tela de Torneios cobre esse caso
+    if (!torneioDaCategoria) {
+      toast.warning(
+        `Ainda não há torneio de ${tipoLabel[time.tipo]} cadastrado — crie um na tela de Torneios e inscreva o time depois.`
+      );
+      return;
+    }
+
+    try {
+      await torneioService.inscreverTime(torneioDaCategoria.id, time.id);
+      queryClient.invalidateQueries({ queryKey: ["torneio-times", torneioDaCategoria.id] });
+      toast.success(`Time inscrito no torneio de ${tipoLabel[time.tipo]}.`);
+    } catch {
+      // ao aprovar, o time normalmente ja foi inscrito no cadastro — so avisa
+      // quando alguem clica manualmente em "Inscrever no torneio"
+      if (opts?.avisarSeJaInscrito) {
+        toast.info("Esse time já estava inscrito no torneio.");
       }
     }
+  }
 
-    const falhas: string[] = [];
+  const aprovarTime = useMutation({
+    mutationFn: timeService.aprovar,
+    onSuccess: (timeAprovado) => {
+      invalidarTimes();
+      toast.success("Time aprovado.");
+      tentarInscreverNoTorneio(timeAprovado);
+    },
+    onError: () => toast.error("Não foi possível aprovar o time."),
+    onSettled: () => setProcessandoId(null),
+  });
 
-    if (imagemRecortada) {
-      try {
-        const arquivo = new File([imagemRecortada], "time.jpg", { type: "image/jpeg" });
-        await timeService.uploadImagem(time.id, arquivo);
-      } catch {
-        falhas.push("imagem");
-      }
-    }
+  const reprovarTime = useMutation({
+    mutationFn: timeService.reprovar,
+    onSuccess: () => {
+      invalidarTimes();
+      toast.success("Time reprovado.");
+    },
+    onError: () => toast.error("Não foi possível reprovar o time."),
+    onSettled: () => setProcessandoId(null),
+  });
 
-    if (audioGol) {
-      try {
-        await timeService.uploadAudioGol(time.id, audioGol);
-      } catch {
-        falhas.push("áudio de gol");
-      }
-    }
+  const uploadAudioGolMutation = useMutation({
+    mutationFn: ({ id, file }: { id: number; file: File }) => timeService.uploadAudioGol(id, file),
+    onSuccess: () => {
+      invalidarTimes();
+      toast.success("Áudio de gol atualizado.");
+    },
+    onError: () => toast.error("Não foi possível enviar o áudio de gol."),
+  });
 
-    if (audioVitoria) {
-      try {
-        await timeService.uploadAudioVitoria(time.id, audioVitoria);
-      } catch {
-        falhas.push("áudio de vitória");
-      }
-    }
+  const uploadAudioVitoriaMutation = useMutation({
+    mutationFn: ({ id, file }: { id: number; file: File }) => timeService.uploadAudioVitoria(id, file),
+    onSuccess: () => {
+      invalidarTimes();
+      toast.success("Áudio de vitória atualizado.");
+    },
+    onError: () => toast.error("Não foi possível enviar o áudio de vitória."),
+  });
 
-    queryClient.invalidateQueries({ queryKey: ["times"] });
+  function handleAprovar(time: Time) {
+    setProcessandoId(time.id);
+    setTimeDetalheId(null);
+    aprovarTime.mutate(time.id);
+  }
 
-    if (falhas.length > 0) {
-      toast.error(`Time cadastrado, mas houve falha ao salvar: ${falhas.join(", ")}.`);
-    } else if (inscrito) {
-      toast.success(`Time cadastrado e inscrito no torneio de ${tipoLabel[tipo]}.`);
-    } else if (torneioDaCategoria) {
-      toast.success("Time cadastrado, mas não foi possível inscrevê-lo automaticamente — use o botão Inscrever na tela de Torneios.");
-    } else {
-      toast.success(`Time cadastrado. Crie um torneio de ${tipoLabel[tipo]} para poder inscrevê-lo.`);
-    }
+  function handleReprovar(time: Time) {
+    setProcessandoId(time.id);
+    setTimeDetalheId(null);
+    reprovarTime.mutate(time.id);
+  }
 
-    setSalvando(false);
-    fecharDialog();
+  async function handleInscrever(time: Time) {
+    setProcessandoId(time.id);
+    await tentarInscreverNoTorneio(time, { avisarSeJaInscrito: true });
+    setProcessandoId(null);
   }
 
   return (
@@ -252,7 +214,7 @@ export default function Times() {
             </SelectContent>
           </Select>
 
-          <Dialog open={open} onOpenChange={(v) => (v ? setOpen(true) : fecharDialog())}>
+          <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4" />
@@ -260,139 +222,13 @@ export default function Times() {
               </Button>
             </DialogTrigger>
             <DialogContent>
-            <form onSubmit={handleSubmit}>
               <DialogHeader>
                 <DialogTitle>Novo time</DialogTitle>
-                <DialogDescription>Cadastre uma equipe para o torneio.</DialogDescription>
+                <DialogDescription>Cadastre uma equipe para o torneio. Ela entra como pendente até ser aprovada.</DialogDescription>
               </DialogHeader>
-
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="nome">Nome do time</Label>
-                  <Input
-                    id="nome"
-                    value={nome}
-                    onChange={(e) => setNome(e.target.value)}
-                    placeholder="Ex: IFSP Robotics"
-                    autoFocus
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="tipo">Categoria</Label>
-                  <Select value={tipo} onValueChange={(v) => setTipo(v as EnumTime)}>
-                    <SelectTrigger id="tipo">
-                      <SelectValue placeholder="Selecione a categoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ROBOCODE">RoboCode</SelectItem>
-                      <SelectItem value="ROBOSOCCER">RoboSoccer</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="imagem">Imagem do time (opcional)</Label>
-                  <div className="flex items-center gap-3">
-                    {previewUrl ? (
-                      <div className="relative h-16 w-16 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => inputImagemRef.current?.click()}
-                          className="block h-16 w-16 cursor-pointer overflow-hidden rounded-md border"
-                        >
-                          <img
-                            src={previewUrl}
-                            alt="Miniatura do time"
-                            className="h-full w-full object-cover"
-                          />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={removerImagem}
-                          className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full border bg-background text-muted-foreground hover:text-foreground"
-                          aria-label="Remover imagem"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => inputImagemRef.current?.click()}
-                        className="flex h-16 w-16 shrink-0 cursor-pointer items-center justify-center rounded-md border border-dashed text-muted-foreground hover:border-foreground/50 hover:text-foreground"
-                        aria-label="Escolher imagem do time"
-                      >
-                        <ImagePlus className="h-5 w-5" />
-                      </button>
-                    )}
-
-                    <Input
-                      id="imagem"
-                      ref={inputImagemRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => setArquivoParaRecorte(e.target.files?.[0] ?? null)}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Áudio de gol (opcional, até 2s — recorte se for maior)</Label>
-                  <AudioPicker
-                    arquivo={audioGol}
-                    onSelecionar={handleSelecionarAudioGol}
-                    onRemover={() => setAudioGol(null)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Áudio de vitória (opcional, até 10s — recorte se for maior)</Label>
-                  <AudioPicker
-                    arquivo={audioVitoria}
-                    onSelecionar={handleSelecionarAudioVitoria}
-                    onRemover={() => setAudioVitoria(null)}
-                  />
-                </div>
-
-                {erro && <p className="text-sm text-destructive">{erro}</p>}
-              </div>
-
-              <DialogFooter>
-                <Button type="submit" disabled={salvando}>
-                  {salvando ? "Salvando..." : "Salvar"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        <ImageCropperDialog
-          file={arquivoParaRecorte}
-          onCancel={() => {
-            setArquivoParaRecorte(null);
-            if (inputImagemRef.current) inputImagemRef.current.value = "";
-          }}
-          onCropped={(blob) => {
-            setImagemRecortada(blob);
-            setArquivoParaRecorte(null);
-          }}
-        />
-
-        <AudioCropperDialog
-          file={pendenciaAudioGol}
-          duracaoMaxima={2}
-          onCancel={cancelarCorteAudioGol}
-          onCropped={confirmarCorteAudioGol}
-        />
-
-        <AudioCropperDialog
-          file={pendenciaAudioVitoria}
-          duracaoMaxima={10}
-          onCancel={cancelarCorteAudioVitoria}
-          onCropped={confirmarCorteAudioVitoria}
-        />
+              <TimeCadastroForm submitLabel="Salvar" onSuccess={() => setOpen(false)} />
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -416,6 +252,8 @@ export default function Times() {
                   <TableHead className="w-16" />
                   <TableHead>Nome</TableHead>
                   <TableHead>Categoria</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -437,6 +275,51 @@ export default function Times() {
                     </TableCell>
                     <TableCell className="font-medium">{time.nome}</TableCell>
                     <TableCell>{tipoLabel[time.tipo]}</TableCell>
+                    <TableCell>
+                      <Badge variant={statusVariant[time.status]}>{statusLabel[time.status]}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button size="sm" variant="outline" onClick={() => setTimeDetalheId(time.id)}>
+                          <Eye className="h-3.5 w-3.5" />
+                          Detalhes
+                        </Button>
+                        {isAdmin && time.status === "PENDENTE" && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={processandoId === time.id}
+                              onClick={() => handleAprovar(time)}
+                            >
+                              <Check className="h-3.5 w-3.5" />
+                              Aprovar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-destructive hover:text-destructive"
+                              disabled={processandoId === time.id}
+                              onClick={() => handleReprovar(time)}
+                            >
+                              <X className="h-3.5 w-3.5" />
+                              Reprovar
+                            </Button>
+                          </>
+                        )}
+                        {isAdmin && time.status === "APROVADO" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={processandoId === time.id}
+                            onClick={() => handleInscrever(time)}
+                          >
+                            <Trophy className="h-3.5 w-3.5" />
+                            Inscrever no torneio
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -453,48 +336,101 @@ export default function Times() {
           )}
         </CardContent>
       </Card>
-    </div>
-  );
-}
 
-interface AudioPickerProps {
-  arquivo: File | null;
-  onSelecionar: (e: ChangeEvent<HTMLInputElement>) => void;
-  onRemover: () => void;
-}
+      <Dialog open={timeDetalheId !== null} onOpenChange={(v) => !v && setTimeDetalheId(null)}>
+        <DialogContent>
+          {carregandoDetalhe ? (
+            <div className="space-y-4 py-2">
+              <Skeleton className="mx-auto h-32 w-32 rounded-md" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          ) : erroDetalhe ? (
+            <ErrorState message="Não foi possível carregar os detalhes do time." />
+          ) : (
+            timeDetalhe && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{timeDetalhe.nome}</DialogTitle>
+                <DialogDescription>
+                  {tipoLabel[timeDetalhe.tipo]} ·{" "}
+                  <Badge variant={statusVariant[timeDetalhe.status]} className="align-middle">
+                    {statusLabel[timeDetalhe.status]}
+                  </Badge>
+                </DialogDescription>
+              </DialogHeader>
 
-function AudioPicker({ arquivo, onSelecionar, onRemover }: AudioPickerProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const previewUrl = useMemo(() => (arquivo ? URL.createObjectURL(arquivo) : null), [arquivo]);
+              <div className="space-y-4 py-2">
+                <div className="flex justify-center">
+                  {timeDetalhe.imagem ? (
+                    <img
+                      src={`${API_BASE_URL}${timeDetalhe.imagem}`}
+                      alt={timeDetalhe.nome}
+                      className="h-32 w-32 rounded-md border object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-32 w-32 items-center justify-center rounded-md border border-dashed text-muted-foreground">
+                      <Users className="h-8 w-8" />
+                    </div>
+                  )}
+                </div>
 
-  useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-    };
-  }, [previewUrl]);
+                <TimeAudioRevisao
+                  label="Áudio de gol (até 2s)"
+                  audioUrl={timeDetalhe.audioGol}
+                  duracaoMaxima={2}
+                  editavel={isAdmin}
+                  enviando={uploadAudioGolMutation.isPending && uploadAudioGolMutation.variables?.id === timeDetalhe.id}
+                  onSubstituir={(file) => uploadAudioGolMutation.mutate({ id: timeDetalhe.id, file })}
+                />
 
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()}>
-        <Music className="h-3.5 w-3.5" />
-        {arquivo ? "Trocar áudio" : "Selecionar áudio"}
-      </Button>
+                <TimeAudioRevisao
+                  label="Áudio de vitória (até 10s)"
+                  audioUrl={timeDetalhe.audioVitoria}
+                  duracaoMaxima={10}
+                  editavel={isAdmin}
+                  enviando={
+                    uploadAudioVitoriaMutation.isPending && uploadAudioVitoriaMutation.variables?.id === timeDetalhe.id
+                  }
+                  onSubstituir={(file) => uploadAudioVitoriaMutation.mutate({ id: timeDetalhe.id, file })}
+                />
+              </div>
 
-      {arquivo && previewUrl && (
-        <>
-          <audio controls src={previewUrl} className="h-8 max-w-[180px]" />
-          <button
-            type="button"
-            onClick={onRemover}
-            className="text-muted-foreground hover:text-foreground"
-            aria-label="Remover áudio"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </>
-      )}
+              {isAdmin && timeDetalhe.status === "PENDENTE" && (
+                <div className="flex justify-end gap-2 border-t pt-4">
+                  <Button
+                    variant="outline"
+                    className="text-destructive hover:text-destructive"
+                    disabled={processandoId === timeDetalhe.id}
+                    onClick={() => handleReprovar(timeDetalhe)}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    Reprovar
+                  </Button>
+                  <Button disabled={processandoId === timeDetalhe.id} onClick={() => handleAprovar(timeDetalhe)}>
+                    <Check className="h-3.5 w-3.5" />
+                    Aprovar
+                  </Button>
+                </div>
+              )}
 
-      <input ref={inputRef} type="file" accept="audio/*" className="hidden" onChange={onSelecionar} />
+              {isAdmin && timeDetalhe.status === "APROVADO" && (
+                <div className="flex justify-end border-t pt-4">
+                  <Button
+                    variant="outline"
+                    disabled={processandoId === timeDetalhe.id}
+                    onClick={() => handleInscrever(timeDetalhe)}
+                  >
+                    <Trophy className="h-3.5 w-3.5" />
+                    Inscrever no torneio
+                  </Button>
+                </div>
+              )}
+            </>
+          )
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

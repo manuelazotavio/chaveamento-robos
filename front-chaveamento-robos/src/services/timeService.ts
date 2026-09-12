@@ -7,6 +7,11 @@ export const timeService = {
     return data;
   },
 
+  async detalhar(id: number): Promise<Time> {
+    const { data } = await api.get<Time>(`/api/times/${id}`);
+    return data;
+  },
+
   async criar(payload: CriarTimeRequest): Promise<Time> {
     const { data } = await api.post<Time>("/api/times", payload);
     return data;
@@ -37,6 +42,16 @@ export const timeService = {
     const { data } = await api.post<Time>(`/api/times/time/${id}/audio-vitoria`, formData, {
       headers: { "Content-Type": undefined },
     });
+    return data;
+  },
+
+  async aprovar(id: number): Promise<Time> {
+    const { data } = await api.patch<Time>(`/api/times/${id}/aprovar`);
+    return data;
+  },
+
+  async reprovar(id: number): Promise<Time> {
+    const { data } = await api.patch<Time>(`/api/times/${id}/reprovar`);
     return data;
   },
 };

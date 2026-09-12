@@ -117,6 +117,10 @@ public class TimeService {
                 .toList();
     }
 
+    public TimeResponse detalhar(Long id) {
+        return new TimeResponse(getById(id));
+    }
+
     public Time getById(Long id) {
         return timeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Time não encontrado"));

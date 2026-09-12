@@ -60,6 +60,9 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
+                        // imagens/audios dos times sao carregadas via <img>/<audio> no front,
+                        // que nunca envia o header Authorization — precisa ser publico
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuarios").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/times/*/aprovar", "/api/times/*/reprovar").hasRole("ADMIN")
                         .anyRequest().authenticated()

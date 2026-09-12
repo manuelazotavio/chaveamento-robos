@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Outlet, useLocation } from "react-router-dom";
-import { Menu } from "lucide-react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { LogOut, Menu } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { AppSidebar } from "./AppSidebar";
@@ -14,8 +15,15 @@ const pageNames: Record<string, string> = {
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const segment = location.pathname.split("/").filter(Boolean)[0] ?? "";
   const currentPage = pageNames[segment] ?? segment;
+
+  function handleLogout() {
+    logout();
+    navigate("/login", { replace: true });
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -43,7 +51,14 @@ export function AppLayout() {
               </Breadcrumb>
             </div>
 
-           
+            {user && (
+              <div className="flex items-center gap-3">
+                <span className="hidden truncate text-sm text-muted-foreground sm:inline">{user.email}</span>
+                <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Sair">
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
         </header>
 

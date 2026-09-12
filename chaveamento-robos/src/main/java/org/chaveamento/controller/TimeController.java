@@ -36,6 +36,11 @@ public class TimeController {
         return ResponseEntity.ok(timeService.listar());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<TimeResponse> detalhar(@PathVariable Long id) {
+        return ResponseEntity.ok(timeService.detalhar(id));
+    }
+
     @PatchMapping("/{id}/aprovar")
     public ResponseEntity<TimeResponse> aprovar(@PathVariable Long id) {
         return ResponseEntity.ok(timeService.aprovar(id));
