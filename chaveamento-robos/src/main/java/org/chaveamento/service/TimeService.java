@@ -9,19 +9,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 @Service
 public class TimeService {
 
     private final TimeRepository timeRepository;
+    private final SupabaseStorageService storageService;
 
-    public TimeService(TimeRepository timeRepository) {
+    public TimeService(TimeRepository timeRepository, SupabaseStorageService storageService) {
         this.timeRepository = timeRepository;
+        this.storageService = storageService;
     }
 
     public TimeResponse criar(CriarTimeRequest request){
@@ -40,19 +38,13 @@ public class TimeService {
 
         String nomeArquivo = id + ".jpg";
 
-        Path pasta = Paths.get("uploads/time");
-        Files.createDirectories(pasta);
-
-        Path caminho = pasta.resolve(nomeArquivo);
-
-        Files.copy(
+        String url = storageService.upload(
+                "time/" + nomeArquivo,
                 imagem.getInputStream(),
-                caminho,
-                StandardCopyOption.REPLACE_EXISTING
+                imagem.getContentType()
         );
 
-        // caminho servido via o resource handler /uploads/** (ver CorsConfig)
-        time.setImagem("/uploads/time/" + nomeArquivo);
+        time.setImagem(url);
 
         return timeRepository.save(time);
 
@@ -62,9 +54,9 @@ public class TimeService {
 
         Time time = getById(id);
 
-        String caminhoSalvo = salvarAudio("uploads/audio/gol", id, audio);
+        String url = salvarAudio("audio/gol", id, audio);
 
-        time.setAudioGol(caminhoSalvo);
+        time.setAudioGol(url);
 
         return timeRepository.save(time);
     }
@@ -73,9 +65,9 @@ public class TimeService {
 
         Time time = getById(id);
 
-        String caminhoSalvo = salvarAudio("uploads/audio/vitoria", id, audio);
+        String url = salvarAudio("audio/vitoria", id, audio);
 
-        time.setAudioVitoria(caminhoSalvo);
+        time.setAudioVitoria(url);
 
         return timeRepository.save(time);
     }
@@ -85,19 +77,11 @@ public class TimeService {
         String extensao = extensaoDoArquivo(audio.getOriginalFilename());
         String nomeArquivo = id + extensao;
 
-        Path pasta = Paths.get(pastaBase);
-        Files.createDirectories(pasta);
-
-        Path caminho = pasta.resolve(nomeArquivo);
-
-        Files.copy(
+        return storageService.upload(
+                pastaBase + "/" + nomeArquivo,
                 audio.getInputStream(),
-                caminho,
-                StandardCopyOption.REPLACE_EXISTING
+                audio.getContentType()
         );
-
-        // caminho servido via o resource handler /uploads/** (ver CorsConfig)
-        return "/" + pastaBase + "/" + nomeArquivo;
     }
 
     private String extensaoDoArquivo(String nomeOriginal) {
