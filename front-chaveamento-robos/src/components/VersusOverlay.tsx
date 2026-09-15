@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { API_BASE_URL } from "@/services/api";
+import { resolveArquivoUrl } from "@/services/api";
 
 interface VersusTeam {
   nome: string;
@@ -10,7 +10,7 @@ interface VersusTeam {
 
 function tocarAudio(caminho: string | null) {
   if (!caminho) return;
-  new Audio(`${API_BASE_URL}${caminho}`).play().catch(() => {});
+  new Audio(resolveArquivoUrl(caminho)).play().catch(() => {});
 }
 
 interface VersusOverlayProps {
@@ -248,7 +248,7 @@ function VersusAvatar({ time, grande = false }: { time: VersusTeam | null; grand
   if (time?.imagem) {
     return (
       <img
-        src={`${API_BASE_URL}${time.imagem}`}
+        src={resolveArquivoUrl(time.imagem)}
         alt={time.nome}
         className={`${tamanho} rounded-md border-4 border-white object-cover shadow-2xl`}
       />

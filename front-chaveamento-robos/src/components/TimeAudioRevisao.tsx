@@ -2,7 +2,7 @@ import { ChangeEvent, useRef, useState } from "react";
 import { Music, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AudioCropperDialog } from "@/components/AudioCropperDialog";
-import { API_BASE_URL } from "@/services/api";
+import { resolveArquivoUrl } from "@/services/api";
 
 interface TimeAudioRevisaoProps {
   label: string;
@@ -59,7 +59,7 @@ export function TimeAudioRevisao({
       </div>
 
       {audioUrl ? (
-        <audio controls src={`${API_BASE_URL}${audioUrl}`} className="w-full" />
+        <audio controls src={resolveArquivoUrl(audioUrl)} className="w-full" />
       ) : (
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <Music className="h-3.5 w-3.5" />

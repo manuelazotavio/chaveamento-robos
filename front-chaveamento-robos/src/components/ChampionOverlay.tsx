@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import confetti from "canvas-confetti";
 import { Trophy } from "lucide-react";
-import { API_BASE_URL } from "@/services/api";
+import { resolveArquivoUrl } from "@/services/api";
 
 interface ChampionTeam {
   nome: string;
@@ -30,7 +30,7 @@ export function ChampionOverlay({ time, onClose }: ChampionOverlayProps) {
 
   useEffect(() => {
     if (!time.audioVitoria) return;
-    const audio = new Audio(`${API_BASE_URL}${time.audioVitoria}`);
+    const audio = new Audio(resolveArquivoUrl(time.audioVitoria));
     audio.play().catch(() => {});
     return () => audio.pause();
     // toca só uma vez quando o campeão é revelado
@@ -154,7 +154,7 @@ function ChampionAvatar({ time }: { time: ChampionTeam }) {
   if (time.imagem) {
     return (
       <img
-        src={`${API_BASE_URL}${time.imagem}`}
+        src={resolveArquivoUrl(time.imagem)}
         alt={time.nome}
         className="champ-photo relative z-10 h-40 w-40 rounded-md border-4 border-yellow-400 object-cover shadow-[0_0_40px_rgba(250,204,21,0.6)] sm:h-56 sm:w-56"
       />

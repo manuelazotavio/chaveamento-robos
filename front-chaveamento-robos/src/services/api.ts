@@ -4,6 +4,13 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:80
 
 export const TOKEN_STORAGE_KEY = "chaveamento.token";
 
+// imagens/audios dos times: hoje o backend devolve URL completa do Supabase Storage;
+// o `?? ""` cobre times antigos com path relativo (era servido pelo backend antes da migração)
+export function resolveArquivoUrl(caminho: string | null | undefined): string {
+  if (!caminho) return "";
+  return caminho.startsWith("http") ? caminho : `${API_BASE_URL}${caminho}`;
+}
+
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {

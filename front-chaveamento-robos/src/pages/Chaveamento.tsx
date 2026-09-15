@@ -6,7 +6,7 @@ import { chaveamentoService } from "@/services/chaveamentoService";
 import { partidaService } from "@/services/partidaService";
 import { torneioService } from "@/services/torneioService";
 import { timeService } from "@/services/timeService";
-import { API_BASE_URL } from "@/services/api";
+import { resolveArquivoUrl } from "@/services/api";
 import type { EnumTorneio } from "@/types/torneio";
 import type { Time } from "@/types/time";
 import type { FasePartida, Partida } from "@/types/partida";
@@ -657,7 +657,7 @@ function TeamAvatar({
   if (time?.imagem) {
     return (
       <img
-        src={`${API_BASE_URL}${time.imagem}`}
+        src={resolveArquivoUrl(time.imagem)}
         alt={time.nome}
         className={`${tamanho} shrink-0 rounded-sm border object-cover ${apagado ? "grayscale opacity-50" : ""}`}
       />

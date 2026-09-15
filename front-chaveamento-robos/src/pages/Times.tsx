@@ -4,7 +4,7 @@ import { Check, Eye, Plus, Trophy, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { timeService } from "@/services/timeService";
 import { torneioService } from "@/services/torneioService";
-import { API_BASE_URL } from "@/services/api";
+import { resolveArquivoUrl } from "@/services/api";
 import { useAuth } from "@/lib/auth";
 import type { EnumTime, StatusTime, Time } from "@/types/time";
 import { Button } from "@/components/ui/button";
@@ -263,7 +263,7 @@ export default function Times() {
                     <TableCell>
                       {time.imagem ? (
                         <img
-                          src={`${API_BASE_URL}${time.imagem}`}
+                          src={resolveArquivoUrl(time.imagem)}
                           alt={time.nome}
                           className="h-10 w-10 rounded-md border object-cover"
                         />
@@ -364,7 +364,7 @@ export default function Times() {
                 <div className="flex justify-center">
                   {timeDetalhe.imagem ? (
                     <img
-                      src={`${API_BASE_URL}${timeDetalhe.imagem}`}
+                      src={resolveArquivoUrl(timeDetalhe.imagem)}
                       alt={timeDetalhe.nome}
                       className="h-32 w-32 rounded-md border object-cover"
                     />
