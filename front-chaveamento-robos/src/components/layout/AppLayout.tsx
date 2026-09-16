@@ -7,7 +7,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from "@/co
 import { AppSidebar } from "./AppSidebar";
 
 const pageNames: Record<string, string> = {
-  "": "Chaveamento",
+  chaveamento: "Chaveamento",
   times: "Times",
   torneios: "Torneios",
 };

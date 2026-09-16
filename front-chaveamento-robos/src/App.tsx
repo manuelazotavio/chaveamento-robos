@@ -11,11 +11,12 @@ import NotFound from "@/pages/NotFound";
 export default function App() {
   return (
     <Routes>
+      <Route index element={<CadastroTime />} />
       <Route path="login" element={<Login />} />
       <Route path="cadastro-time" element={<CadastroTime />} />
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
-          <Route index element={<Chaveamento />} />
+          <Route path="chaveamento" element={<Chaveamento />} />
           <Route path="times" element={<Times />} />
           <Route path="torneios" element={<Torneios />} />
         </Route>

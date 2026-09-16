@@ -18,7 +18,7 @@ export default function Login() {
   const [entrando, setEntrando] = useState(false);
 
   if (isAuthenticated) {
-    const destino = (location.state as { from?: Location })?.from?.pathname ?? "/";
+    const destino = (location.state as { from?: Location })?.from?.pathname ?? "/chaveamento";
     return <Navigate to={destino} replace />;
   }
 
@@ -33,7 +33,7 @@ export default function Login() {
     setEntrando(true);
     try {
       await login({ email: email.trim(), senha });
-      const destino = (location.state as { from?: Location })?.from?.pathname ?? "/";
+      const destino = (location.state as { from?: Location })?.from?.pathname ?? "/chaveamento";
       navigate(destino, { replace: true });
     } catch {
       setErro("Email ou senha inválidos.");

@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const menuItems = [
-  { title: "Chaveamento", url: "/", icon: Swords, end: true },
+  { title: "Chaveamento", url: "/chaveamento", icon: Swords, end: true },
   { title: "Times", url: "/times", icon: Users, end: false },
   { title: "Torneios", url: "/torneios", icon: Trophy, end: false },
 ];
