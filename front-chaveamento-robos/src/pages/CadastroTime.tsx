@@ -17,7 +17,7 @@ export default function CadastroTime() {
           </div>
           <CardTitle>Inscrição de time</CardTitle>
           <CardDescription>
-            Cadastre sua equipe para o torneio de Chaveamento de Robôs. Após o envio, um dos organizadores do evento iram
+            Cadastre sua equipe para o torneio de Chaveamento de Robôs. Após o envio, um dos organizadores do evento irão
             avaliar e aprova a inscrição.
           </CardDescription>
         </CardHeader>
@@ -28,7 +28,7 @@ export default function CadastroTime() {
               <div className="space-y-1">
                 <p className="font-medium">Time enviado para aprovação!</p>
                 <p className="text-sm text-muted-foreground">
-                  Aguarde um dos organizadores iram revisar o cadastro. Você pode inscrever outro time se quiser.
+                  Aguarde um dos organizadores revisar o cadastro. Você pode inscrever outro time se quiser.
                 </p>
               </div>
               <Button variant="outline" onClick={() => setEnviado(false)}>
