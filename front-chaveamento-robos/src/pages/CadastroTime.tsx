@@ -18,7 +18,7 @@ export default function CadastroTime() {
           <CardTitle>Inscrição de time</CardTitle>
           <CardDescription>
             Cadastre sua equipe para o torneio de Chaveamento de Robôs. Após o envio, um dos organizadores do evento irão
-            avaliar e aprova a inscrição.
+            avaliar e aprovar a inscrição.
           </CardDescription>
         </CardHeader>
         <CardContent>
