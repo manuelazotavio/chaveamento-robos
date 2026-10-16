@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/torneios")
@@ -33,4 +34,18 @@ public class TorneioController {
         return ResponseEntity.ok(torneioService.listar());
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        torneioService.deletar(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException e) {
+        String msg = e.getMessage() != null ? e.getMessage() : "Erro inesperado";
+        return ResponseEntity.badRequest().body(Map.of(
+                "erro", msg,
+                "message", msg
+        ));
+    }
 }

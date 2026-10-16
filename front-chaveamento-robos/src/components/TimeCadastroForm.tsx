@@ -3,7 +3,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ImagePlus, Music, X } from "lucide-react";
 import { toast } from "sonner";
 import { timeService } from "@/services/timeService";
-import { torneioService } from "@/services/torneioService";
 import type { EnumTime, Time } from "@/types/time";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,20 +11,13 @@ import { ImageCropperDialog } from "@/components/ImageCropperDialog";
 import { AudioCropperDialog } from "@/components/AudioCropperDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const tipoLabel: Record<EnumTime, string> = {
-  ROBOCODE: "RoboCode",
-  ROBOSOCCER: "RoboSoccer",
-  MARATONA_PROGRAMACAO: "Maratona de Programação",
-};
-
 interface TimeCadastroFormProps {
   onSuccess?: (time: Time) => void;
   submitLabel?: string;
 }
 
 // formulário de cadastro de time, usado tanto no modal de admin (Times.tsx)
-// quanto na tela pública de inscrição — cria o time (que nasce PENDENTE,
-// aguardando aprovação) e opcionalmente já inscreve no torneio da categoria
+// quanto na tela pública de inscrição — cria o time como PENDENTE aguardando aprovação
 export function TimeCadastroForm({ onSuccess, submitLabel = "Cadastrar" }: TimeCadastroFormProps) {
   const queryClient = useQueryClient();
   const [nome, setNome] = useState("");
@@ -41,11 +33,9 @@ export function TimeCadastroForm({ onSuccess, submitLabel = "Cadastrar" }: TimeC
   const [pendenciaAudioGol, setPendenciaAudioGol] = useState<File | null>(null);
   const [pendenciaAudioVitoria, setPendenciaAudioVitoria] = useState<File | null>(null);
 
-  // times/torneios exigem login no backend — para visitante anônimo (tela
-  // pública) essas consultas simplesmente falham e os dados ficam undefined,
-  // então o form segue sem checagem de duplicidade nem auto-inscrição
+  // times exigem login no backend — para visitante anônimo (tela pública)
+  // essa consulta falha silenciosamente e o form segue sem checagem de duplicidade
   const { data: times } = useQuery({ queryKey: ["times"], queryFn: timeService.listar, retry: false });
-  const { data: torneios } = useQuery({ queryKey: ["torneios"], queryFn: torneioService.listar, retry: false });
 
   // maratona de programação não usa imagem nem áudio do time
   const semMidia = tipo === "MARATONA_PROGRAMACAO";
@@ -120,23 +110,6 @@ export function TimeCadastroForm({ onSuccess, submitLabel = "Cadastrar" }: TimeC
 
     queryClient.invalidateQueries({ queryKey: ["times"] });
 
-    // ao cadastrar o time já inscreve automaticamente no torneio da mesma categoria
-    // (como só existe um torneio por categoria, escolher a categoria já basta)
-    const torneioDaCategoria =
-      torneios?.find((t) => t.tipo === tipo && t.status === "INSCRICOES") ??
-      torneios?.find((t) => t.tipo === tipo);
-
-    let inscrito = false;
-    if (torneioDaCategoria) {
-      try {
-        await torneioService.inscreverTime(torneioDaCategoria.id, time.id);
-        queryClient.invalidateQueries({ queryKey: ["torneio-times", torneioDaCategoria.id] });
-        inscrito = true;
-      } catch {
-        // segue sem travar o cadastro — o botão "Inscrever" na tela de Torneios cobre esse caso
-      }
-    }
-
     const falhas: string[] = [];
 
     if (!semMidia && imagemRecortada) {
@@ -168,8 +141,6 @@ export function TimeCadastroForm({ onSuccess, submitLabel = "Cadastrar" }: TimeC
 
     if (falhas.length > 0) {
       toast.error(`Time enviado para aprovação, mas houve falha ao salvar: ${falhas.join(", ")}.`);
-    } else if (inscrito) {
-      toast.success(`Time enviado para aprovação e inscrito no torneio de ${tipoLabel[tipo]}.`);
     } else {
       toast.success("Time enviado para aprovação.");
     }

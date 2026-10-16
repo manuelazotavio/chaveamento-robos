@@ -22,4 +22,12 @@ export const torneioService = {
     const { data } = await api.post<ParticipacaoTorneio>(`/torneios/${torneioId}/times/${timeId}`);
     return data;
   },
+
+  async removerTime(torneioId: number, timeId: number): Promise<void> {
+    await api.delete(`/torneios/${torneioId}/times/${timeId}`);
+  },
+
+  async deletar(torneioId: number): Promise<void> {
+    await api.delete(`/torneios/${torneioId}`);
+  },
 };

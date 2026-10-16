@@ -54,4 +54,9 @@ export const timeService = {
     const { data } = await api.patch<Time>(`/api/times/${id}/reprovar`);
     return data;
   },
+
+  async voltarPendente(id: number): Promise<Time> {
+    const { data } = await api.patch<Time>(`/api/times/${id}/pendente`);
+    return data;
+  },
 };

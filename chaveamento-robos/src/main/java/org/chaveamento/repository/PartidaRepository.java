@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface PartidaRepository extends JpaRepository<Partida, Long> {
     List<Partida> findByTorneioId(Long torneioId);
+    boolean existsByTorneioId(Long torneioId);
+    void deleteByTorneioId(Long torneioId);
 }

@@ -7,6 +7,7 @@ import org.chaveamento.model.partida.FasePartida;
 import org.chaveamento.model.partida.Partida;
 import org.chaveamento.model.partida.PosicaoProximaPartida;
 import org.chaveamento.model.partida.StatusPartida;
+import org.chaveamento.model.time.StatusTime;
 import org.chaveamento.model.time.Time;
 import org.chaveamento.model.torneio.Torneio;
 import org.chaveamento.repository.ParticipacaoTorneioRepository;
@@ -52,7 +53,12 @@ public class ChaveamentoService {
         List<ParticipacaoTorneio> participacoes =
                 participacaoRepository.findByTorneioId(torneioId);
 
-        validarQuantidadeTimes(participacoes.size());
+        List<Time> times = participacoes.stream()
+                .map(ParticipacaoTorneio::getTime)
+                .filter(t -> t.getStatus() == StatusTime.APROVADO)
+                .toList();
+
+        validarQuantidadeTimes(times.size());
 
         // fases já jogadas não podem ser perdidas num sorteio novo
         List<Partida> chaveamentoAnterior = partidaRepository.findByTorneioId(torneioId);
@@ -66,10 +72,6 @@ public class ChaveamentoService {
         }
 
         removerChaveamentoAnterior(torneioId);
-
-        List<Time> times = participacoes.stream()
-                .map(ParticipacaoTorneio::getTime)
-                .toList();
 
         List<Time> timesSorteados = new ArrayList<>(times);
 
