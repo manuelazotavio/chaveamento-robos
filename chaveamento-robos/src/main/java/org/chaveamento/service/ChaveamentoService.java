@@ -224,7 +224,8 @@ public class ChaveamentoService {
                                 : null,
                         partida.getProximaPartida() != null
                                 ? partida.getProximaPartida().getId()
-                                : null
+                                : null,
+                        partida.getObservacao()
                 ))
                 .toList();
     }
