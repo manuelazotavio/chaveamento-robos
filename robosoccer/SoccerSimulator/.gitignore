@@ -1,0 +1,4 @@
+build-tmp/
+
+# Configuracao local com login da API
+torneio.properties

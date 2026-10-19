@@ -8,6 +8,8 @@ Repositório unificado do sistema de chaveamento e acompanhamento de torneios de
 
 Esta seção é destinada à integração do **RoboSoccer** com o sistema de chaveamento para atualização automática de placares, rounds e avanço de fase em tempo real.
 
+> O simulador de RoboSoccer já integrado está em [`robosoccer/`](robosoccer/). O passo a passo para o dia do evento está em [`robosoccer/INSTRUCOES_TORNEIO.md`](robosoccer/INSTRUCOES_TORNEIO.md).
+
 ### 🔐 1. Autenticação
 
 Todas as chamadas à API de partidas requerem um token JWT válido no cabeçalho:
@@ -23,7 +25,7 @@ Para obter o token, envie uma requisição para a rota de login:
 - **Body:**
   ```json
   {
-    "login": "seu_usuario",
+    "email": "seu_email@dominio.com",
     "senha": "sua_senha"
   }
   ```
@@ -150,6 +152,7 @@ Caso ocorra algum problema técnico e seja necessário reiniciar a partida do ze
 
 - **`chaveamento-robos/`**: API REST desenvolvida em Java 17 com Spring Boot, Spring Security (JWT), Spring Data JPA e PostgreSQL.
 - **`front-chaveamento-robos/`**: Interface web desenvolvida em React 19, Vite, Tailwind CSS, TanStack Query e Lucide Icons.
+- **`robosoccer/`**: Simulador RoboSoccer (sketch Processing) integrado à API: lista as partidas do chaveamento, envia cada gol e o resultado final.
 
 ---
 

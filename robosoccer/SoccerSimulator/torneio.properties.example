@@ -1,0 +1,28 @@
+# ===============================================================
+# RoboSoccer - integracao com o chaveamento-robos
+# ===============================================================
+# Copie este arquivo para 'torneio.properties' (na mesma pasta) e preencha.
+# O arquivo torneio.properties nao vai para o git (tem a senha).
+
+# === Conexao com a API ===
+api.url=http://localhost:8080
+api.email=email_aqui@dominio.com
+api.senha=senha_aqui
+
+# === Torneio ===
+# ID do torneio de RoboSoccer no painel de chaveamento
+torneio.id=1
+
+# === Regras do jogo ===
+# Robos por time
+jogo.jogadoresPorTime=2
+# Duracao total em segundos (dividida em 2 tempos). 300 = 5 minutos
+jogo.duracaoSegundos=300
+# Se empatar no fim, continua ate o proximo gol (gol de ouro)
+jogo.golDeOuro=true
+
+# === Times ===
+# Liga o ID do time no chaveamento a classe Java dele nesta pasta.
+# Formato: time.<ID do time>=<NomeDaClasse>   (arquivo <NomeDaClasse>.java)
+time.1=CustomTeamA
+time.2=CustomTeamB
