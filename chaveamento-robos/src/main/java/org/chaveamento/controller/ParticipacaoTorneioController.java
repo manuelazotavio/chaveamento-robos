@@ -1,20 +1,16 @@
 package org.chaveamento.controller;
 
-
 import org.chaveamento.dto.time.TimeResponse;
 import org.chaveamento.model.participacaotorneio.ParticipacaoTorneio;
 import org.chaveamento.service.ParticipacaoTorneioService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
-@Controller
+@RestController
 @RequestMapping("/torneios")
 public class ParticipacaoTorneioController {
 
@@ -34,10 +30,28 @@ public class ParticipacaoTorneioController {
                 .body(service.adicionarTime(torneioId, timeId));
     }
 
+    @DeleteMapping("/{torneioId}/times/{timeId}")
+    public ResponseEntity<Void> removerTime(
+            @PathVariable Long torneioId,
+            @PathVariable Long timeId
+    ) {
+        service.removerTime(torneioId, timeId);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/{torneioId}/times")
     public ResponseEntity<List<TimeResponse>> listarTimes(@PathVariable Long torneioId){
         return ResponseEntity.ok(
                 service.listarTimes(torneioId)
         );
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException e) {
+        String msg = e.getMessage() != null ? e.getMessage() : "Erro inesperado";
+        return ResponseEntity.badRequest().body(Map.of(
+                "erro", msg,
+                "message", msg
+        ));
     }
 }

@@ -10,6 +10,7 @@ export interface Time {
   audioGol?: string | null;
   audioVitoria?: string | null;
   status: StatusTime;
+  torneioId?: number | null;
 }
 
 export interface CriarTimeRequest {

@@ -13,6 +13,21 @@ public record PartidaResponse(
         Integer placarTimeA,
         Integer placarTimeB,
         Long vencedorId,
-        Long proximaPartidaId
+        Long proximaPartidaId,
+        String observacao
 ) {
+    public PartidaResponse(
+            Long id,
+            FasePartida fase,
+            StatusPartida status,
+            Long torneioId,
+            Long timeAId,
+            Long timeBId,
+            Integer placarTimeA,
+            Integer placarTimeB,
+            Long vencedorId,
+            Long proximaPartidaId
+    ) {
+        this(id, fase, status, torneioId, timeAId, timeBId, placarTimeA, placarTimeB, vencedorId, proximaPartidaId, null);
+    }
 }

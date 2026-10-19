@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/times")
@@ -51,6 +52,11 @@ public class TimeController {
         return ResponseEntity.ok(timeService.reprovar(id));
     }
 
+    @PatchMapping("/{id}/pendente")
+    public ResponseEntity<TimeResponse> voltarPendente(@PathVariable Long id) {
+        return ResponseEntity.ok(timeService.voltarPendente(id));
+    }
+
     @PostMapping("/time/{id}/imagem")
     public ResponseEntity<?> upload(@PathVariable Long id, @RequestParam("imagem") MultipartFile imagem) throws IOException {
 
@@ -67,5 +73,14 @@ public class TimeController {
     public ResponseEntity<?> uploadAudioVitoria(@PathVariable Long id, @RequestParam("audio") MultipartFile audio) throws IOException {
 
         return ResponseEntity.ok(timeService.uploadAudioVitoria(id, audio));
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException e) {
+        String msg = e.getMessage() != null ? e.getMessage() : "Erro inesperado";
+        return ResponseEntity.badRequest().body(Map.of(
+                "erro", msg,
+                "message", msg
+        ));
     }
 }

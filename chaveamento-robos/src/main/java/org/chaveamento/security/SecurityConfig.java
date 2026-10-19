@@ -57,11 +57,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/times/time/*/audio-gol").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/times/time/*/audio-vitoria").permitAll()
                         .requestMatchers(
+                                "/error",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuarios").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/times/*/aprovar", "/api/times/*/reprovar").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/times/*/aprovar", "/api/times/*/reprovar", "/api/times/*/pendente").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/partidas/*/resultado", "/partidas/admin/*/resultado").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/torneios/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

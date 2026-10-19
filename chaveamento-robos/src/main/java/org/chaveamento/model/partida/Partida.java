@@ -51,4 +51,7 @@ public class Partida {
 
     @Enumerated(EnumType.STRING)
     private PosicaoProximaPartida posicaoProximaPartida;
+
+    @Column(length = 500)
+    private String observacao;
 }

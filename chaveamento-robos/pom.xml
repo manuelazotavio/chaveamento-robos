@@ -21,7 +21,7 @@
     <description>API para gerenciamento de torneios RoboSoccer</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>17</java.version>
     </properties>
 
     <dependencies>

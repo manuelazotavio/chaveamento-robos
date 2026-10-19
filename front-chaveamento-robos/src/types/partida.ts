@@ -13,9 +13,11 @@ export interface Partida {
   placarTimeB: number | null;
   vencedorId: number | null;
   proximaPartidaId: number | null;
+  observacao?: string | null;
 }
 
 export interface ResultadoPartidaRequest {
   placarTimeA: number;
   placarTimeB: number;
+  observacao?: string | null;
 }

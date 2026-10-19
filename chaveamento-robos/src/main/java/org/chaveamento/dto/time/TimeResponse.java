@@ -3,7 +3,7 @@ package org.chaveamento.dto.time;
 import org.chaveamento.model.time.EnumTime;
 import org.chaveamento.model.time.StatusTime;
 import org.chaveamento.model.time.Time;
-//
+
 public record TimeResponse(
         Long id,
         String nome,
@@ -11,10 +11,15 @@ public record TimeResponse(
         String imagem,
         String audioGol,
         String audioVitoria,
-        StatusTime status
+        StatusTime status,
+        Long torneioId
 ) {
 
     public TimeResponse(Time time) {
+        this(time, null);
+    }
+
+    public TimeResponse(Time time, Long torneioId) {
         this(
                 time.getId(),
                 time.getNome(),
@@ -22,7 +27,8 @@ public record TimeResponse(
                 time.getImagem(),
                 time.getAudioGol(),
                 time.getAudioVitoria(),
-                time.getStatus()
+                time.getStatus(),
+                torneioId
         );
     }
 }

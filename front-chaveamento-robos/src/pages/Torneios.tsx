@@ -1,9 +1,10 @@
 import { FormEvent, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trophy } from "lucide-react";
+import { Plus, Trash2, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { torneioService } from "@/services/torneioService";
-import type { EnumTorneio, StatusTorneio } from "@/types/torneio";
+import { useAuth } from "@/lib/auth";
+import type { EnumTorneio, StatusTorneio, Torneio } from "@/types/torneio";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,6 +29,17 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
+function extrairMensagemErro(err: any, fallback: string): string {
+  const data = err?.response?.data;
+  if (!data) return fallback;
+  if (typeof data === "string" && data.trim()) return data;
+  if (typeof data.erro === "string" && data.erro.trim()) return data.erro;
+  if (typeof data.message === "string" && data.message.trim()) return data.message;
+  if (typeof data.error === "string" && data.error.trim()) return data.error;
+  if (typeof data.detail === "string" && data.detail.trim()) return data.detail;
+  return fallback;
+}
+
 const tipoLabel: Record<EnumTorneio, string> = {
   ROBOCODE: "RoboCode",
   ROBOSOCCER: "RoboSoccer",
@@ -42,17 +54,20 @@ const statusLabel: Record<StatusTorneio, string> = {
 
 export default function Torneios() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
 
   const [open, setOpen] = useState(false);
   const [tipo, setTipo] = useState<EnumTorneio | "">("");
   const [erro, setErro] = useState<string | null>(null);
+  const [torneioParaExcluir, setTorneioParaExcluir] = useState<Torneio | null>(null);
 
   const { data: torneios, isLoading, isError, refetch } = useQuery({
     queryKey: ["torneios"],
     queryFn: torneioService.listar,
   });
 
-  // só existem duas categorias possíveis — depois que um torneio de cada já existir,
+  // só existem as categorias possíveis — depois que um torneio de cada já existir,
   // não faz sentido permitir criar outro igual (evita duplicidade)
   const tiposExistentes = useMemo(
     () => new Set(torneios?.map((t) => t.tipo) ?? []),
@@ -68,8 +83,23 @@ export default function Torneios() {
       setOpen(false);
       setTipo("");
     },
-    onError: () => {
-      toast.error("Não foi possível criar o torneio.");
+    onError: (err: any) => {
+      const msg = extrairMensagemErro(err, "Não foi possível criar o torneio.");
+      toast.error(msg);
+    },
+  });
+
+  const deletarTorneio = useMutation({
+    mutationFn: torneioService.deletar,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["torneios"] });
+      queryClient.invalidateQueries({ queryKey: ["times"] });
+      toast.success("Torneio excluído com sucesso.");
+      setTorneioParaExcluir(null);
+    },
+    onError: (err: any) => {
+      const msg = extrairMensagemErro(err, "Não foi possível excluir o torneio.");
+      toast.error(msg);
     },
   });
 
@@ -163,6 +193,7 @@ export default function Torneios() {
                   <TableHead className="w-20">ID</TableHead>
                   <TableHead>Categoria</TableHead>
                   <TableHead>Status</TableHead>
+                  {isAdmin && <TableHead className="text-right">Ações</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -173,6 +204,20 @@ export default function Torneios() {
                     <TableCell className="text-muted-foreground">
                       {torneio.status ? statusLabel[torneio.status] : "—"}
                     </TableCell>
+                    {isAdmin && (
+                      <TableCell className="text-right">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+                          disabled={deletarTorneio.isPending}
+                          onClick={() => setTorneioParaExcluir(torneio)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Excluir
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -185,6 +230,33 @@ export default function Torneios() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={torneioParaExcluir !== null} onOpenChange={(v) => !v && setTorneioParaExcluir(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir torneio</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja excluir o torneio de{" "}
+              <strong className="font-semibold text-foreground">
+                {torneioParaExcluir ? tipoLabel[torneioParaExcluir.tipo] : ""} (#{torneioParaExcluir?.id})
+              </strong>
+              ? Essa ação desinscreve os times vinculados e só é permitida se as partidas ainda não estiverem em andamento ou finalizadas.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setTorneioParaExcluir(null)} disabled={deletarTorneio.isPending}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={deletarTorneio.isPending}
+              onClick={() => torneioParaExcluir && deletarTorneio.mutate(torneioParaExcluir.id)}
+            >
+              {deletarTorneio.isPending ? "Excluindo..." : "Excluir torneio"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
